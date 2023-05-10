@@ -11,6 +11,7 @@
 #define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
 #include <Eigen/Dense>
+#include <cassert>
 
 #include "../src/pba_util_glfw.h"
 #include "../src/pba_util_gl.h"
@@ -172,6 +173,8 @@ void set_force_accelerated(
         } else { // far field approximation
           // write a few lines of code here to compute the force from far grid.
           // use the center for the gravity of the grid : `acc.grid2cg[jy * num_div + jx]`
+          unsigned int np = acc.grid2idx[iy * num_div + ix + 1] - acc.grid2idx[iy * num_div + ix];
+          particles[ip].force += gravitational_force(acc.grid2cg[jy * num_div * jx] - particles[ip].pos) * np;
         }
       }
     }
