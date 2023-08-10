@@ -75,9 +75,8 @@ void step(
     // Write some code below to compute gradient of gravitational potential energy for each vertex
     // Code differentiation of energy w.r.t. translation and rotation for one line each.
     // For the differentiation w.r.t. rotation, observe how the rotation matrix will be updated at the line #83
-    // dEdt +=
-    // dEdo +=
-    // do not change anything else except for the lines above.
+    dEdt += -gravity;
+    dEdo += -vtx2xyz.row(i_vtx).cross(gravity) * rotation;
   }
   translation -= learning_rate * dEdt;
   rotation = rotation * Eigen::AngleAxisf(-dEdo.norm()*learning_rate, dEdo.stableNormalized());
