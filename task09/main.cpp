@@ -67,18 +67,21 @@ void step(
   Eigen::Vector3f dEdo = Eigen::Vector3f::Zero();
   Eigen::Vector3f dEdt = Eigen::Vector3f::Zero();
   {
-    Eigen::Vector3f t0 = vtx2xyz.row(i_vtx_fix) -  vtx2xyz_ini.row(i_vtx_fix);
+    Eigen::Vector3f t0 = vtx2xyz.row(i_vtx_fix) -  vtx2xyz_ini.row(i_vtx_fix); // t0 = [R]*{X_fix}+{t}-{X_fix}
     dEdt += penalty*t0;
-    dEdo += penalty*vtx2xyz_ini.row(i_vtx_fix).cross(t0.transpose() * rotation);
+    // dEdo += penalty*vtx2xyz_ini.row(i_vtx_fix).cross(t0.transpose() * rotation);
+    dEdo += penalty * vtx2xyz_ini.row(i_vtx_fix).transpose().cross(rotation.transpose() * (translation - vtx2xyz_ini.row(i_vtx_fix).transpose())); // I wrote. Equivalent to line #72.
   }
-  for(unsigned int i_vtx=0; i_vtx<vtx2xyz.rows(); ++i_vtx){
+  for(unsigned int i_vtx = 0; i_vtx < vtx2xyz.rows(); ++i_vtx){
     // Write some code below to compute gradient of gravitational potential energy for each vertex
     // Code differentiation of energy w.r.t. translation and rotation for one line each.
-    // For the differentiation w.r.t. rotation, observe how the rotation matrix will be updated at the line #83
+    // For the differentiation w.r.t. rotation, observe how the rotation matrix will be updated at the line #85
     dEdt += -gravity;
     dEdo += -vtx2xyz.row(i_vtx).cross(gravity) * rotation;
+    // dEdo += -vtx2xyz.row(i_vtx).cross(gravity.transpose() * rotation); // wrong...
   }
   translation -= learning_rate * dEdt;
+  // R <- R dR = R R(dw,e) = R exp(dw Skew(e)) = R exp(Skew(dw e))
   rotation = rotation * Eigen::AngleAxisf(-dEdo.norm()*learning_rate, dEdo.stableNormalized());
   vtx2xyz = ((rotation * vtx2xyz_ini.transpose()).colwise() + translation).transpose();
 }
