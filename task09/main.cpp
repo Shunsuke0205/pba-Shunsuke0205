@@ -127,8 +127,8 @@ int main() {
 
     // draw fixed point
     ::glDisable(GL_LIGHTING);
-    ::glColor3d(0.0, 0.0, 1.0);
-    pba::draw_sphere_at(32, 32, 0.05, vtx2xyz(ivtx_fix,0), vtx2xyz(ivtx_fix,1), vtx2xyz(ivtx_fix,2));
+    // ::glColor3d(0.0, 0.0, 1.0);
+    // pba::draw_sphere_at(32, 32, 0.05, vtx2xyz(ivtx_fix,0), vtx2xyz(ivtx_fix,1), vtx2xyz(ivtx_fix,2));
     ::glColor3d(1.0, 0.0, 0.0);
     pba::draw_sphere_at(32, 32, 0.05, vtx2xyz_ini(ivtx_fix,0), vtx2xyz_ini(ivtx_fix,1), vtx2xyz_ini(ivtx_fix,2));
 
