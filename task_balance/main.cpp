@@ -77,7 +77,7 @@ Eigen::Matrix3f inertia_tensor_solid_3d_triangle_mesh(
 }
 
 auto load_3d_model(const unsigned int i_vtx_supported) {
-  auto[tri2vtx, vtx2xyz] = pba::load_wavefront_obj(std::filesystem::path(PATH_SOURCE_DIR) / "simple_pendulum1.obj");
+  auto[tri2vtx, vtx2xyz] = pba::load_wavefront_obj(std::filesystem::path(PATH_SOURCE_DIR) / "bunny.obj");
   { // normalize the size
     auto size = (vtx2xyz.colwise().maxCoeff() - vtx2xyz.colwise().minCoeff()).maxCoeff();
     vtx2xyz /= size;
@@ -95,7 +95,7 @@ auto load_3d_model(const unsigned int i_vtx_supported) {
 }
 
 int main() {
-  constexpr unsigned int i_vtx_supported = 8;
+  constexpr unsigned int i_vtx_supported = 2475;
   const auto[tri2vtx, vtx2xyz_ini] = load_3d_model(i_vtx_supported);
   const auto line2vtx = pba::lines_of_mesh(tri2vtx, static_cast<int>(vtx2xyz_ini.rows()));
   const Eigen::Matrix3f inertia = inertia_tensor_solid_3d_triangle_mesh(tri2vtx, vtx2xyz_ini);
@@ -112,7 +112,7 @@ int main() {
   float time = 0.f;
   Eigen::Matrix<float, Eigen::Dynamic, 3, Eigen::RowMajor> vtx2xyz = vtx2xyz_ini; // rotated mesh
   // constexpr unsigned int i_vtx_trajectory = 831; // for t-rex
-  constexpr unsigned int i_vtx_trajectory = 0;
+  constexpr unsigned int i_vtx_trajectory = 3294;
   std::vector<Eigen::Vector3f> trajectory; // trajectory
   Eigen::Vector3f Omega(0.0f, 1.0f, 0.0f); // initial angular velocity (\dot{R} = R * Skew(\Omega))
   // Eigen::Matrix3f rotation = Eigen::Matrix3f::Identity(); // rotation to optimize
