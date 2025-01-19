@@ -10,6 +10,11 @@
 #include <random>
 #include <filesystem>
 #include <fstream>
+
+#include <chrono> // to adjust the speed of simulation
+#include <thread>
+
+
 #define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
 #include <Eigen/Dense>
@@ -126,7 +131,7 @@ int main() {
         Eigen::Vector3f gravity(0.0f, -1.0f, 0.0f);
         Eigen::Vector3f dOmega_dt = inertia.inverse() * (-(Omega.cross(inertia * Omega)) + rotation.inverse() * (rotation * center_ini).cross(total_mass * gravity));
         Omega = Omega + dt * dOmega_dt;
-        // Do not change anything else except for the two lines above.
+
       }
       // std::cout << "time: " << time << std::endl;
       // Since we use the forward Euler method for the time integration, the energy will increase slightly over the time.
@@ -177,15 +182,15 @@ int main() {
     
 
     // draw xyz axis
-    ::glDisable(GL_LIGHTING);
-    ::glColor3d(0.0, 0.0, 0.0);
-    pba::draw_sphere_at(16, 16, 0.02, 0, 0, 0);
-    ::glColor3d(1.0, 0.0, 0.0);
-    pba::draw_sphere_at(16, 16, 0.02, 0.1, 0, 0);
-    ::glColor3d(0.0, 1.0, 0.0);
-    pba::draw_sphere_at(16, 16, 0.02, 0, 0.2, 0);
-    ::glColor3d(0.0, 0.0, 1.0);
-    pba::draw_sphere_at(16, 16, 0.02, 0, 0, 0.3);
+    // ::glDisable(GL_LIGHTING);
+    // ::glColor3d(0.0, 0.0, 0.0);
+    // pba::draw_sphere_at(16, 16, 0.02, 0, 0, 0);
+    // ::glColor3d(1.0, 0.0, 0.0);
+    // pba::draw_sphere_at(16, 16, 0.02, 0.1, 0, 0);
+    // ::glColor3d(0.0, 1.0, 0.0);
+    // pba::draw_sphere_at(16, 16, 0.02, 0, 0.2, 0);
+    // ::glColor3d(0.0, 0.0, 1.0);
+    // pba::draw_sphere_at(16, 16, 0.02, 0, 0, 0.3);
 
     // draw trajectory
     ::glDisable(GL_LIGHTING);
