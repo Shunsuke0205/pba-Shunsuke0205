@@ -72,27 +72,33 @@ Eigen::Matrix3f inertia_tensor_solid_3d_triangle_mesh(
 }
 
 auto load_3d_model(const unsigned int i_vtx_supported) {
-  auto[tri2vtx, vtx2xyz] = pba::load_wavefront_obj(std::filesystem::path(PATH_SOURCE_DIR) / "t-rex.obj");
+  auto[tri2vtx, vtx2xyz] = pba::load_wavefront_obj(std::filesystem::path(PATH_SOURCE_DIR) / "bunny.obj");
   { // normalize the size
     auto size = (vtx2xyz.colwise().maxCoeff() - vtx2xyz.colwise().minCoeff()).maxCoeff();
     vtx2xyz /= size;
-    vtx2xyz *= 2.5;
+    // vtx2xyz *= 2.5;
+    vtx2xyz *= 1.0;
   }
   // compute volume and the center of gravity
   auto[volume, center] = volume_center_solid_3d_triangle_mesh(tri2vtx, vtx2xyz);
-  vtx2xyz.rowwise() -= vtx2xyz.row(i_vtx_supported);
   // vtx2xyz.rowwise() -= center.transpose(); // center-ize
+
+  Eigen::Vector3f tmp_xyz = vtx2xyz.row(i_vtx_supported);
+  vtx2xyz.rowwise() -= tmp_xyz.transpose();
+  
   return std::make_pair(tri2vtx, vtx2xyz);
 }
 
 int main() {
-  constexpr unsigned int i_vtx_supported = 0;
+  constexpr unsigned int i_vtx_supported = 2475;
   const auto[tri2vtx, vtx2xyz_ini] = load_3d_model(i_vtx_supported);
   const auto line2vtx = pba::lines_of_mesh(tri2vtx, static_cast<int>(vtx2xyz_ini.rows()));
   const Eigen::Matrix3f inertia = inertia_tensor_solid_3d_triangle_mesh(tri2vtx, vtx2xyz_ini);
   auto[total_mass, center_ini] = volume_center_solid_3d_triangle_mesh(tri2vtx, vtx2xyz_ini);
+  
 
   GLFWwindow *window = pba::window_initialization("task10: Simulation of Rigid Body Precession");
+  // pba::FloorDrawer floor(1.0, -1.2);
   pba::FloorDrawer floor(1.0, -1.2);
   ::glEnable(GL_DEPTH_TEST);
   pba::set_some_lighting();
@@ -100,10 +106,14 @@ int main() {
   constexpr float dt = 0.001; // time step
   float time = 0.f;
   Eigen::Matrix<float, Eigen::Dynamic, 3, Eigen::RowMajor> vtx2xyz = vtx2xyz_ini; // rotated mesh
-  constexpr unsigned int i_vtx_trajectory = 831;
+  // constexpr unsigned int i_vtx_trajectory = 831; // for t-rex
+  constexpr unsigned int i_vtx_trajectory = 3294;
   std::vector<Eigen::Vector3f> trajectory; // trajectory
-  Eigen::Vector3f Omega(0.0f, 0.0f, 0.01f); // initial angular velocity (\dot{R} = R * Skew(\Omega))
-  Eigen::Matrix3f rotation = Eigen::Matrix3f::Identity(); // rotation to optimize
+  Eigen::Vector3f Omega(0.0f, 1.0f, 0.0f); // initial angular velocity (\dot{R} = R * Skew(\Omega))
+  // Eigen::Matrix3f rotation = Eigen::Matrix3f::Identity(); // rotation to optimize
+  Eigen::Matrix3f rotation = Eigen::Matrix3f::Identity() * Eigen::AngleAxisf(-3.14159 / 2, Eigen::Vector3f(1.0f, 0.0f, 0.0f)); // rotation to optimize
+
+  std::cout << "inertia: " << std::endl << inertia << std::endl;
 
   while (!::glfwWindowShouldClose(window)) {
     if( time < 200.0 ) {
@@ -114,15 +124,15 @@ int main() {
         // Note that `rotation` should stay a rotational matrix after the update
         rotation = rotation * Eigen::AngleAxisf(dt * Omega.norm(), Omega / Omega.norm());
         Eigen::Vector3f gravity(0.0f, -1.0f, 0.0f);
-        Eigen::Vector3f dOmega_dt = inertia.inverse() * (-(Omega.cross(inertia * Omega)) + rotation.inverse() * (rotation * center_ini).cross(total_mass * gravity));
-        Omega = Omega + dt * dOmega_dt;
+        // Eigen::Vector3f dOmega_dt = inertia.inverse() * (-(Omega.cross(inertia * Omega)) + rotation.inverse() * (rotation * center_ini).cross(total_mass * gravity));
+        // Omega = Omega + dt * dOmega_dt;
         // Do not change anything else except for the two lines above.
       }
-      std::cout << "time: " << time << std::endl;
+      // std::cout << "time: " << time << std::endl;
       // Since we use the forward Euler method for the time integration, the energy will increase slightly over the time.
-      std::cout << "   energy: " << Omega.transpose() * inertia * Omega << std::endl;
+      // std::cout << "   energy: " << Omega.transpose() * inertia * Omega << std::endl;
       // make sure the angular momentum conserves for some extent
-      std::cout << "   angular momentum: " << (rotation * inertia * Omega).transpose() << std::endl;
+      // std::cout << "   angular momentum: " << (rotation * inertia * Omega).transpose() << std::endl;
       trajectory.emplace_back(vtx2xyz.row(i_vtx_trajectory));
       vtx2xyz = (rotation * vtx2xyz_ini.transpose()).transpose(); // the rotated mesh's vertices
     }
@@ -130,7 +140,7 @@ int main() {
     pba::default_window_3d(window); // start window for 3D visualization
     // set view angle
     ::glMatrixMode(GL_MODELVIEW);
-    ::glTranslatef(0.0, 0.0, 0.0);
+    ::glTranslatef(0.0, 0.5, 0.0);
     ::glRotatef(50, 1.0, 0.0, 0.0);
 
     // draw floor with shadow
@@ -153,22 +163,37 @@ int main() {
     // drow center of mass
     auto[_, center] = volume_center_solid_3d_triangle_mesh(tri2vtx, vtx2xyz);
     ::glDisable(GL_LIGHTING);
-    // ::glColor3d(0.0, 0.0, 1.0);
-    // pba::draw_sphere_at(32, 32, 0.03, center_ini(0), center_ini(1), center_ini(2));
-    ::glColor3d(1.0, 0.0, 0.0);
+    ::glColor3d(0.0, 0.0, 1.0);
     pba::draw_sphere_at(32, 32, 0.03, center(0), center(1), center(2));
+    std::cout << "center: " << center(0) << ", " << center(1) << ", " << center(2) << std::endl;
+
     // ::glColor3d(0.0, 1.0, 0.0);
     // pba::draw_sphere_at(16, 16, 0.05, vtx2xyz_ini.row(i_vtx_supported)(0), vtx2xyz_ini.row(i_vtx_supported)(1), vtx2xyz_ini.row(i_vtx_supported)(2));
-    ::glColor3d(0.0, 1.0, 0.0);
+    
+
+    // draw supported vertex
+    ::glColor3d(0.0, 0.0, 0.0);
     pba::draw_sphere_at(16, 16, 0.03, vtx2xyz.row(i_vtx_supported)(0), vtx2xyz.row(i_vtx_supported)(1), vtx2xyz.row(i_vtx_supported)(2));
     
+
+    // draw xyz axis
+    ::glDisable(GL_LIGHTING);
+    ::glColor3d(0.0, 0.0, 0.0);
+    pba::draw_sphere_at(16, 16, 0.02, 0, 0, 0);
+    ::glColor3d(1.0, 0.0, 0.0);
+    pba::draw_sphere_at(16, 16, 0.02, 0.1, 0, 0);
+    ::glColor3d(0.0, 1.0, 0.0);
+    pba::draw_sphere_at(16, 16, 0.02, 0, 0.2, 0);
+    ::glColor3d(0.0, 0.0, 1.0);
+    pba::draw_sphere_at(16, 16, 0.02, 0, 0, 0.3);
 
     // draw trajectory
     ::glDisable(GL_LIGHTING);
     ::glLineWidth(2);
     ::glColor3d(0.0, 0.0, 0.0);
     ::glBegin(GL_LINE_STRIP);
-    for (auto p: trajectory) {
+    for (int i = int(trajectory.size()) - 1; i >= 0 && i >= int(trajectory.size()) - 70; --i) {
+      Eigen::Vector3f p = trajectory.at(i);
       ::glVertex3f(p.x(), p.y(), p.z());
     }
     ::glEnd();
