@@ -124,8 +124,8 @@ int main() {
         // Note that `rotation` should stay a rotational matrix after the update
         rotation = rotation * Eigen::AngleAxisf(dt * Omega.norm(), Omega / Omega.norm());
         Eigen::Vector3f gravity(0.0f, -1.0f, 0.0f);
-        // Eigen::Vector3f dOmega_dt = inertia.inverse() * (-(Omega.cross(inertia * Omega)) + rotation.inverse() * (rotation * center_ini).cross(total_mass * gravity));
-        // Omega = Omega + dt * dOmega_dt;
+        Eigen::Vector3f dOmega_dt = inertia.inverse() * (-(Omega.cross(inertia * Omega)) + rotation.inverse() * (rotation * center_ini).cross(total_mass * gravity));
+        Omega = Omega + dt * dOmega_dt;
         // Do not change anything else except for the two lines above.
       }
       // std::cout << "time: " << time << std::endl;
