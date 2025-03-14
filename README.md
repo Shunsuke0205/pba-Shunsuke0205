@@ -1,3 +1,22 @@
+## This repository is generated from [nobuyuki83/Physics-based_Animation_2023S](https://github.com/nobuyuki83/Physics-based_Animation_2023S).
+
+### How to build and run
+
+Make sure you are at `balance` branch.
+
+```bash
+cd ./task_balance
+mkdir build
+cd build
+cmake ..
+make
+./task_balance
+```
+
+
+
+-----------
+
 # Physics-based Animation 4860-1081 2023S
 
 [![Build_Win](https://github.com/PBA-2023S/pba/actions/workflows/windows.yml/badge.svg)](https://github.com/PBA-2023S/pba/actions/workflows/windows.yml)
